@@ -73,10 +73,10 @@ abstract class SettingsPlugin @Inject constructor(
             val extensionsProject = try {
                 rootProject.project(extensionsProjectPath)
             } catch (e: UnknownProjectException) {
-                return@rootProject
+                null
             }
 
-            extensionsProject.subprojects { extensionProject ->
+            extensionsProject?.subprojects { extensionProject ->
                 if (
                     extensionProject.buildFile.exists() &&
                     !extensionProject.parent!!.plugins.hasPlugin(ExtensionPlugin::class.java)
