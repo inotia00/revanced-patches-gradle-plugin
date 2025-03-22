@@ -55,12 +55,14 @@ abstract class SettingsPlugin @Inject constructor(
     private fun Settings.configureProjects(extension: SettingsExtension) {
         // region Include the projects
 
-        val extensionsProjectPath = extension.extensions.projectsPath ?: return
+        val extensionsProjectPath = extension.extensions.projectsPath
 
-        objectFactory.fileTree().from(rootDir.resolve(extensionsProjectPath)).matching {
-            it.include("**/build.gradle.kts")
-        }.forEach {
-            include(it.relativeTo(rootDir).toPath().joinToString(":"))
+        if (extensionsProjectPath != null) {
+            objectFactory.fileTree().from(rootDir.resolve(extensionsProjectPath)).matching {
+                it.include("**/build.gradle.kts")
+            }.forEach {
+                include(it.relativeTo(rootDir).toPath().joinToString(":"))
+            }
         }
 
         include(extension.patchesProjectPath)
@@ -70,18 +72,20 @@ abstract class SettingsPlugin @Inject constructor(
         // region Apply the plugins
 
         gradle.rootProject { rootProject ->
-            val extensionsProject = try {
-                rootProject.project(extensionsProjectPath)
-            } catch (e: UnknownProjectException) {
-                null
-            }
+            if (extensionsProjectPath != null) {
+                val extensionsProject = try {
+                    rootProject.project(extensionsProjectPath)
+                } catch (e: UnknownProjectException) {
+                    null
+                }
 
-            extensionsProject?.subprojects { extensionProject ->
-                if (
-                    extensionProject.buildFile.exists() &&
-                    !extensionProject.parent!!.plugins.hasPlugin(ExtensionPlugin::class.java)
-                ) {
-                    extensionProject.pluginManager.apply(ExtensionPlugin::class.java)
+                extensionsProject?.subprojects { extensionProject ->
+                    if (
+                        extensionProject.buildFile.exists() &&
+                        !extensionProject.parent!!.plugins.hasPlugin(ExtensionPlugin::class.java)
+                    ) {
+                        extensionProject.pluginManager.apply(ExtensionPlugin::class.java)
+                    }
                 }
             }
 
