@@ -1,3 +1,10 @@
+# [1.0.0-dev.8](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2025-03-22)
+
+
+### Bug Fixes
+
+* Configure patches project on extensions projects absence ([#5](https://github.com/ReVanced/revanced-patches-gradle-plugin/issues/5)) ([2aa7f6f](https://github.com/ReVanced/revanced-patches-gradle-plugin/commit/2aa7f6f9f1e94e05fa28501878e8dd067361404e))
+
 # [1.0.0-dev.7](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2024-11-26)
 
 
