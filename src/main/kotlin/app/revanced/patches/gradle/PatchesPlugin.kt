@@ -6,6 +6,8 @@ import com.android.tools.r8.D8
 import com.android.tools.r8.D8Command
 import com.android.tools.r8.OutputMode
 import com.android.tools.r8.utils.ArchiveResourceProvider
+import com.github.jengelman.gradle.plugins.shadow.ShadowPlugin
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import kotlinx.validation.BinaryCompatibilityValidatorPlugin
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
@@ -32,6 +34,7 @@ abstract class PatchesPlugin : Plugin<Project> {
         project.configureDependencies()
         project.configureKotlin()
         project.configureJava()
+        project.configureShadow()
         project.configureBinaryCompatibilityValidator()
         project.configureConsumeExtensions(extension)
         project.configureJarTask(extension)
@@ -86,6 +89,13 @@ abstract class PatchesPlugin : Plugin<Project> {
     }
 
     /**
+     * Configures the shadow plugin
+     */
+    private fun Project.configureShadow() {
+        pluginManager.apply(ShadowPlugin::class.java)
+    }
+
+    /**
      * Applies the binary compatibility validator plugin to the project, because patches have a public API.
      */
     private fun Project.configureBinaryCompatibilityValidator() {
@@ -115,12 +125,16 @@ abstract class PatchesPlugin : Plugin<Project> {
             task.description = "Builds the project for Android by compiling to DEX and adding it to the patches file."
             task.group = "build"
 
-            task.dependsOn(tasks["jar"])
+            task.dependsOn(tasks["shadowJar"])
+
+            // As we don't depend on the JarTask anymore, we have to add these manually (no one needs a thin jar)
+            task.dependsOn(tasks.named("javadocJar"))
+            task.dependsOn(tasks.named("sourcesJar"))
 
             task.doLast {
                 val workingDirectory = layout.buildDirectory.dir("revanced").get().asFile.also(File::mkdirs)
 
-                val patchesFile = tasks["jar"].outputs.files.first()
+                val patchesFile = tasks["shadowJar"].outputs.files.first()
                 val classesZipFile = workingDirectory.resolve("classes.zip")
 
                 D8Command.builder()
@@ -229,6 +243,13 @@ abstract class PatchesPlugin : Plugin<Project> {
 private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
     tasks.withType(Jar::class.java).configureEach {
         it.archiveExtension.set("rvp")
+
+        // JarTask includes the javadoc and sourcesjar. Be sure to only add the "-thin" filename suffix, if there isn't already one set
+        if (it.archiveClassifier.orNull == null) {
+            it.archiveClassifier.set("thin")
+        }
+
+        // ShadowJar inherits the manifest from the JarTask, so changing it here will also change the fat jar
         it.manifest.apply {
             attributes["Name"] = patchesExtension.about.name
             attributes["Description"] = patchesExtension.about.description
@@ -240,5 +261,22 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
             attributes["Website"] = patchesExtension.about.website
             attributes["License"] = patchesExtension.about.license
         }
+    }
+
+    val shade = configurations.create("shade")
+    configurations.getByName("compileClasspath").extendsFrom(shade)
+    configurations.getByName("runtimeClasspath").extendsFrom(shade)
+
+    tasks.withType(ShadowJar::class.java).configureEach {
+        it.configurations = listOf(shade)
+        it.archiveExtension.set("rvp")
+        it.archiveClassifier.set(null as String?)
+
+        it.minimize()
+        it.isEnableRelocation = true
+        it.relocationPrefix = "app.revanced.libs"
+    }
+    tasks.named("assemble") {
+        it.setDependsOn(listOf(tasks.named("shadowJar"), tasks.named("javadocJar"), tasks.named("sourcesJar")))
     }
 }
