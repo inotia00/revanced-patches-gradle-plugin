@@ -127,7 +127,7 @@ abstract class PatchesPlugin : Plugin<Project> {
 
             task.dependsOn(tasks["shadowJar"])
 
-            // As we don't depend on the JarTask anymore, we have to add these manually (no one needs a thin jar)
+            // Add these manually, as the task does not depend on the "jar" task (no one needs a thin jar).
             task.dependsOn(tasks.named("javadocJar"))
             task.dependsOn(tasks.named("sourcesJar"))
 
