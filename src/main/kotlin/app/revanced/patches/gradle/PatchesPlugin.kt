@@ -248,8 +248,6 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
         if (it.archiveClassifier.orNull.isNullOrEmpty()) {
             it.archiveClassifier.set("thin")
         }
-
-        // ShadowJar inherits the manifest from the JarTask, so changing it here will also change the fat jar
         it.manifest.apply {
             attributes["Name"] = patchesExtension.about.name
             attributes["Description"] = patchesExtension.about.description
