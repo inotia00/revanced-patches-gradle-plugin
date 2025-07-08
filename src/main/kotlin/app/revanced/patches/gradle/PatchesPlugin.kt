@@ -245,7 +245,7 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
         it.archiveExtension.set("rvp")
 
         // JarTask includes the javadoc and sourcesjar. Be sure to only add the "-thin" filename suffix, if there isn't already one set
-        if (it.archiveClassifier.orNull == null) {
+        if (it.archiveClassifier.orNull.isNullOrEmpty()) {
             it.archiveClassifier.set("thin")
         }
 
