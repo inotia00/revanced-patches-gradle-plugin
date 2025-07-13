@@ -241,6 +241,10 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
     tasks.withType(Jar::class.java).configureEach {
         it.archiveExtension.set("rvp")
 
+        if (it.archiveClassifier.orNull.isNullOrEmpty()) {
+            it.archiveClassifier.set("thin");
+        }
+
         it.manifest.apply {
             attributes["Name"] = patchesExtension.about.name
             attributes["Description"] = patchesExtension.about.description
