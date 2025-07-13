@@ -125,11 +125,8 @@ abstract class PatchesPlugin : Plugin<Project> {
             task.description = "Builds the project for Android by compiling to DEX and adding it to the patches file."
             task.group = "build"
 
-            task.dependsOn(tasks["shadowJar"])
-
-            // Add these manually, as the task does not depend on the "jar" task (no one needs a thin jar).
-            task.dependsOn(tasks.named("javadocJar"))
-            task.dependsOn(tasks.named("sourcesJar"))
+            // Should also execute all the tests like with normal `gradlew build`
+            task.dependsOn(tasks["build"])
 
             task.doLast {
                 val workingDirectory = layout.buildDirectory.dir("revanced").get().asFile.also(File::mkdirs)
@@ -244,10 +241,6 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
     tasks.withType(Jar::class.java).configureEach {
         it.archiveExtension.set("rvp")
 
-        // JarTask includes the javadoc and sourcesjar. Be sure to only add the "-thin" filename suffix, if there isn't already one set
-        if (it.archiveClassifier.orNull.isNullOrEmpty()) {
-            it.archiveClassifier.set("thin")
-        }
         it.manifest.apply {
             attributes["Name"] = patchesExtension.about.name
             attributes["Description"] = patchesExtension.about.description
@@ -267,14 +260,16 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
 
     tasks.withType(ShadowJar::class.java).configureEach {
         it.configurations = listOf(shade)
-        it.archiveExtension.set("rvp")
-        it.archiveClassifier.set(null as String?)
+        it.archiveClassifier.set("")
 
         it.minimize()
         it.isEnableRelocation = true
         it.relocationPrefix = "app.revanced.libs"
     }
     tasks.named("assemble") {
-        it.setDependsOn(listOf(tasks.named("shadowJar"), tasks.named("javadocJar"), tasks.named("sourcesJar")))
+        it.dependsOn(tasks.named("shadowJar"))
+    }
+    tasks.named("jar") {
+        it.enabled = false
     }
 }
