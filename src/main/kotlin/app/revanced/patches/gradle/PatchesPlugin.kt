@@ -268,7 +268,7 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
 
         it.minimize()
         it.isEnableRelocation = true
-        it.relocationPrefix = "app.revanced.libs"
+        it.relocationPrefix = "app.revanced.patches"
     }
     tasks.named("assemble") {
         it.dependsOn(tasks.named("shadowJar"))
