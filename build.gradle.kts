@@ -59,7 +59,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/revanced/revanced-patches-gradle-plugin")
+            url = uri("https://maven.pkg.github.com/inotia00/revanced-patches-gradle-plugin")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
