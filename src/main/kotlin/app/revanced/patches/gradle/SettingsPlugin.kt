@@ -35,6 +35,15 @@ abstract class SettingsPlugin @Inject constructor(
                     it.password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
                 }
             }
+            maven { repository ->
+                // A repository must be specified. "registry" is a dummy.
+                repository.url = URI("https://maven.pkg.github.com/inotia00/registry")
+                repository.credentials {
+                    it.username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                    it.password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+                }
+            }
+            maven { repository -> repository.url = URI("https://jitpack.io") }
         }
     }
 
